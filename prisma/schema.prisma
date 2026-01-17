@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Project {
+  id            Int      @id @default(autoincrement())
+  title         String
+  location      String
+  year          String?
+  descriptionPt String?
+  descriptionEn String?
+  thumbnail     String?
+  gallery       String[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Media {
+  id          Int      @id @default(autoincrement())
+  url         String
+  name        String
+  type        String   @default("image")
+  category    String   @default("general")
+  projectName String?
+  createdAt   DateTime @default(now())
+}
+
+model Profile {
+  id        Int      @id @default(1)
+  name      String
+  email     String
+  location  String
+  education String
+  bioPt     String
+  bioEn     String
+  updatedAt DateTime @updatedAt
+}
+
+model Software {
+  id          Int      @id @default(autoincrement())
+  name        String
+  category    String // e.g., "Design", "3D", "Office", etc.
+  icon        String? // URL to icon/logo
+  description String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

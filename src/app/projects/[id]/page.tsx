@@ -1,12 +1,14 @@
 import { Header } from "@/components/Header";
-import { ProjectGrid } from "@/components/ProjectGrid";
 import { Footer } from "@/components/Footer";
+import { ProjectDetailClient } from "@/components/ProjectDetailClient";
 
-export default function Home() {
+export default async function ProjectDetail({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  
   return (
     <main className="min-h-screen bg-white flex flex-col justify-between items-center w-full">
       <Header />
-      <ProjectGrid />
+      <ProjectDetailClient id={id} />
       <Footer />
     </main>
   );
