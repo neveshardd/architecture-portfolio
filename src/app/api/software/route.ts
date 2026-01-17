@@ -8,7 +8,8 @@ export async function GET() {
     });
     return NextResponse.json(software);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch software' }, { status: 500 });
+    console.error('Error fetching software:', error);
+    return NextResponse.json({ error: 'Failed to fetch software', details: String(error) }, { status: 500 });
   }
 }
 

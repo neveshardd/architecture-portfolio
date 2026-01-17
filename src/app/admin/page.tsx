@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense, useEffect } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { MediaLibrary } from "@/components/MediaLibrary";
 import { SoftwareManager } from "@/components/SoftwareManager";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -27,13 +28,28 @@ interface Profile {
     bioEn: string;
 }
 
-export default function AdminPage() {
+function AdminContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"projects" | "about" | "software">("projects");
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && ['projects', 'about', 'software'].includes(tab)) {
+      setActiveTab(tab as any);
+    }
+  }, [searchParams]);
+
+  const changeTab = (tab: "projects" | "about" | "software") => {
+    setActiveTab(tab);
+    router.replace(`/admin?tab=${tab}`, { scroll: false });
+  };
   
   // Modal States
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false); // Success Modal State
   
   // Media Library Modal
   const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
@@ -95,7 +111,7 @@ export default function AdminPage() {
     },
     onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['profile'] });
-        alert('Profile updated!');
+        setIsSuccessModalOpen(true); // Open success modal
     },
     onError: () => alert('Failed to save profile')
   });
@@ -122,6 +138,7 @@ export default function AdminPage() {
     setIsProjectModalOpen(false);
     setIsDeleteModalOpen(false);
     setIsMediaLibraryOpen(false);
+    setIsSuccessModalOpen(false);
     setEditingProject(null);
     setProjectToDelete(null);
   };
@@ -167,19 +184,19 @@ export default function AdminPage() {
       <header className="bg-white px-8 py-6 flex justify-center items-center sticky top-0 z-40">
         <div className="flex gap-6 text-xs font-bold uppercase tracking-widest">
             <button 
-                onClick={() => setActiveTab("projects")}
+                onClick={() => changeTab("projects")}
                 className={`pb-1 border-b-2 transition-colors ${activeTab === "projects" ? "border-black text-black" : "border-transparent text-gray-400 hover:text-gray-600"}`}
             >
                 Projects
             </button>
             <button 
-                onClick={() => setActiveTab("software")}
+                onClick={() => changeTab("software")}
                 className={`pb-1 border-b-2 transition-colors ${activeTab === "software" ? "border-black text-black" : "border-transparent text-gray-400 hover:text-gray-600"}`}
             >
                 Software
             </button>
             <button 
-                onClick={() => setActiveTab("about")}
+                onClick={() => changeTab("about")}
                 className={`pb-1 border-b-2 transition-colors ${activeTab === "about" ? "border-black text-black" : "border-transparent text-gray-400 hover:text-gray-600"}`}
             >
                 About Info
@@ -329,11 +346,32 @@ export default function AdminPage() {
       </main>
 
       {/* MODALS OVERLAY */}
-      {(isProjectModalOpen || isDeleteModalOpen || isMediaLibraryOpen) && (
+      {(isProjectModalOpen || isDeleteModalOpen || isMediaLibraryOpen || isSuccessModalOpen) && (
         <div 
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={closeModal}
         >
+            {/* SUCCESS MODAL */}
+            {isSuccessModalOpen && (
+                 <div className="bg-white p-8 w-full max-w-sm shadow-2xl border border-gray-100 flex flex-col gap-6 text-center animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center">
+                            <span className="text-green-600 text-xl">✓</span>
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold uppercase tracking-widest text-black mb-1">Success</h3>
+                            <p className="text-sm text-gray-500 font-light">Profile information saved successfully.</p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={() => setIsSuccessModalOpen(false)}
+                        className="bg-black text-white text-xs font-bold uppercase tracking-widest w-full py-3 hover:bg-gray-800 transition-colors"
+                    >
+                        Close
+                    </button>
+                 </div>
+            )}
+
             {/* DELETE CONFIRMATION MODAL */}
             {isDeleteModalOpen && projectToDelete && (
                 <div className="bg-white p-8 w-full max-w-md shadow-2xl border border-gray-100 flex flex-col gap-6" onClick={e => e.stopPropagation()}>
@@ -492,5 +530,13 @@ export default function AdminPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-xs uppercase tracking-widest text-gray-400">Loading Admin...</div>}>
+      <AdminContent />
+    </Suspense>
   );
 }

@@ -86,24 +86,30 @@ export default function About() {
 
             <div>
                 <h2 className="text-sm font-bold uppercase tracking-widest text-black mb-8 border-t border-gray-100 pt-8">Software Skills</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-y-12 gap-x-8">
-                    {softwareList.map((sw) => (
-                        <div key={sw.id} className="flex flex-col items-center justify-center gap-4 group cursor-default p-4 hover:bg-gray-50 rounded-xl transition-colors">
-                            <div className="w-16 h-16 relative flex items-center justify-center grayscale group-hover:grayscale-0 transition-all duration-300 opacity-80 group-hover:opacity-100 scale-90 group-hover:scale-100">
-                              {sw.icon ? (
-                                <img 
-                                  src={sw.icon} 
-                                  alt={sw.name} 
-                                  className="max-w-full max-h-full object-contain"
-                                />
-                              ) : (
-                                <span className="text-[10px] font-bold text-gray-300">NO ICON</span>
-                              )}
+                {softwareList.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                        <p className="text-xs text-gray-400 uppercase tracking-widest font-light">Skills info updating...</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-y-12 gap-x-8">
+                        {softwareList.map((sw) => (
+                            <div key={sw.id} className="flex flex-col items-center justify-center gap-4 group cursor-default p-4 hover:bg-gray-50 rounded-xl transition-colors">
+                                <div className="w-16 h-16 relative flex items-center justify-center grayscale group-hover:grayscale-0 transition-all duration-300 opacity-80 group-hover:opacity-100 scale-90 group-hover:scale-100">
+                                {sw.icon ? (
+                                    <img 
+                                    src={sw.icon} 
+                                    alt={sw.name} 
+                                    className="max-w-full max-h-full object-contain"
+                                    />
+                                ) : (
+                                    <span className="text-[10px] font-bold text-gray-300">NO ICON</span>
+                                )}
+                                </div>
+                                <span className="text-xs text-gray-500 font-light text-center uppercase tracking-wide group-hover:text-black transition-colors">{sw.name}</span>
                             </div>
-                            <span className="text-xs text-gray-500 font-light text-center uppercase tracking-wide group-hover:text-black transition-colors">{sw.name}</span>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
       </div>

@@ -43,7 +43,7 @@ export function ProjectGrid() {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 px-6 md:px-8 lg:px-16 pb-32 max-w-screen-2xl mx-auto w-full">
-        {[...Array(4)].map((_, i) => (
+        {[...Array(8)].map((_, i) => (
           <div key={i} className="relative w-full aspect-4/3 bg-gray-200 overflow-hidden animate-pulse rounded-sm">
              <div className="absolute inset-0 bg-linear-to-t from-gray-300/50 via-transparent to-transparent" />
              <div className="absolute bottom-4 md:bottom-6 left-4 md:left-6 z-10 flex flex-col gap-2 w-full max-w-[70%]">
@@ -53,6 +53,15 @@ export function ProjectGrid() {
           </div>
         ))}
       </div>
+    );
+  }
+
+  if (projects.length === 0) {
+    return (
+        <div className="flex flex-col items-center justify-center py-32 text-center px-4 w-full">
+            <h3 className="text-lg font-light uppercase tracking-widest text-gray-400 mb-2">Portfolio Empty</h3>
+            <p className="text-xs text-gray-300 font-light uppercase tracking-wide">No projects have been published yet.</p>
+        </div>
     );
   }
 
