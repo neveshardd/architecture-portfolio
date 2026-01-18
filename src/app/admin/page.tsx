@@ -483,48 +483,74 @@ function AdminContent() {
                             </div>
 
                             <div className="flex flex-col gap-2">
-                                <label className="text-xs font-bold uppercase tracking-widest text-gray-500 flex justify-between">
-                                    <span>Thumbnail Image</span>
-                                    <button 
-                                        onClick={() => { setMediaTarget('thumbnail'); setIsMediaLibraryOpen(true); }}
-                                        className="text-black hover:underline"
-                                    >
-                                        + Select from Library
-                                    </button>
-                                </label>
-                                <div className="flex gap-4 items-center">
-                                    <input 
-                                        type="text" 
-                                        value={formData.image || ''}
-                                        onChange={e => setFormData({...formData, image: e.target.value})}
-                                        className="flex-1 border border-gray-200 p-3 text-sm font-light focus:outline-none focus:border-black transition-colors bg-gray-50/50"
-                                        placeholder="https://..."
-                                    />
-                                    {formData.image && (
-                                        <div className="w-12 h-12 bg-gray-100 shrink-0">
-                                            <img src={formData.image} className="w-full h-full object-cover" />
-                                        </div>
-                                    )}
-                                </div>
+                                <label className="text-xs font-bold uppercase tracking-widest text-gray-500">Thumbnail Image</label>
+                                {formData.image ? (
+                                    <div className="relative group w-40 aspect-square bg-gray-100 border border-gray-200 overflow-hidden shadow-sm">
+                                        <img src={formData.image} className="w-full h-full object-cover" />
+                                        <button
+                                            onClick={() => setFormData({ ...formData, image: undefined })}
+                                            className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white w-6 h-6 flex items-center justify-center text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-all shadow-md z-10 rounded-sm"
+                                            title="Remove thumbnail"
+                                        >
+                                            ✕
+                                        </button>
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none" />
+                                    </div>
+                                ) : (
+                                    <div className="w-40 aspect-square border border-dashed border-gray-300 bg-gray-50/50 flex flex-col items-center justify-center gap-3 hover:bg-gray-50 transition-colors">
+                                         <span className="text-gray-400 text-[10px] font-light uppercase tracking-wide">No Image</span>
+                                         <button 
+                                            onClick={() => { setMediaTarget('thumbnail'); setIsMediaLibraryOpen(true); }}
+                                            className="text-black text-[10px] font-bold uppercase tracking-widest border border-gray-200 bg-white px-4 py-2 hover:border-black hover:bg-black hover:text-white transition-all shadow-sm"
+                                        >
+                                            Select
+                                        </button>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex flex-col gap-2">
-                                <label className="text-xs font-bold uppercase tracking-widest text-gray-500 flex justify-between">
-                                    <span>Gallery URLs</span>
+                                <label className="text-xs font-bold uppercase tracking-widest text-gray-500 flex justify-between items-center">
+                                    <span>Gallery Images</span>
                                     <button 
                                         onClick={() => { setMediaTarget('gallery'); setIsMediaLibraryOpen(true); }}
-                                        className="text-black hover:underline"
+                                        className="text-black hover:underline text-[10px]"
                                     >
-                                        + Add from Library
+                                        + Add Images
                                     </button>
                                 </label>
-                                <textarea 
-                                    className="border border-gray-200 p-3 text-sm font-light focus:outline-none focus:border-black transition-colors bg-gray-50/50 h-32 leading-relaxed resize-none font-mono"
-                                    placeholder="https://..."
-                                    value={Array.isArray(formData.gallery) ? formData.gallery.join('\n') : formData.gallery || ''}
-                                    onChange={e => setFormData({...formData, gallery: e.target.value.split('\n') })}
-                                />
-                                <p className="text-[10px] text-gray-400">One URL per line</p>
+                                
+                                {Array.isArray(formData.gallery) && formData.gallery.length > 0 ? (
+                                    <div className="grid grid-cols-3 md:grid-cols-4 gap-2 border border-gray-100 p-2 bg-gray-50/50 min-h-[100px]">
+                                        {formData.gallery.map((url, index) => (
+                                            <div key={index} className="relative group aspect-square bg-gray-200 border border-gray-200 overflow-hidden">
+                                                <img src={url} className="w-full h-full object-cover" />
+                                                <button
+                                                    onClick={() => {
+                                                        const newGallery = [...(formData.gallery as string[])];
+                                                        newGallery.splice(index, 1);
+                                                        setFormData({ ...formData, gallery: newGallery });
+                                                    }}
+                                                    className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white w-6 h-6 flex items-center justify-center text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-all shadow-md z-10"
+                                                    title="Remove from project"
+                                                >
+                                                    ✕
+                                                </button>
+                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="border border-dashed border-gray-200 p-8 text-center bg-gray-50/50 flex flex-col items-center gap-2">
+                                        <span className="text-gray-400 text-xs font-light">Gallery is empty</span>
+                                        <button 
+                                            onClick={() => { setMediaTarget('gallery'); setIsMediaLibraryOpen(true); }}
+                                            className="text-black text-[10px] font-bold uppercase tracking-widest border border-gray-300 px-3 py-1 hover:bg-white transition-colors"
+                                        >
+                                            Select Images
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
