@@ -120,8 +120,12 @@ export function MediaLibrary({ onSelect, onMultiSelect, multiSelect = false, ini
         // Compress Image
         const compressedBlob = await compressImage(file);
         
+        // Sanitize filename (remove accents, spaces to underscore)
+        const rawName = file.name.replace(/\.[^/.]+$/, "");
+        const sanitizedName = rawName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "_");
+        
         // Upload to Supabase Storage
-        const fileName = `${Date.now()}-${file.name.replace(/\.[^/.]+$/, "")}.jpg`;
+        const fileName = `${Date.now()}-${sanitizedName}.jpg`;
         const { error: uploadError } = await supabase.storage
             .from('media') // Make sure this bucket exists in Supabase
             .upload(fileName, compressedBlob, {
