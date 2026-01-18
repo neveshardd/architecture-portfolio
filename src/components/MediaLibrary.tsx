@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 interface Media {
   id: number;
@@ -55,6 +56,53 @@ export function MediaLibrary({ onSelect, onMultiSelect, multiSelect = false, ini
     }
   };
 
+  const compressImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.src = url;
+      
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const MAX_SIZE = 1920; 
+
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            reject(new Error('Canvas context failed'));
+            return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error('Compression failed'));
+        }, 'image/jpeg', 0.8);
+      };
+      
+      img.onerror = (e) => {
+        URL.revokeObjectURL(url);
+        reject(e);
+      };
+    });
+  };
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
     setUploading(true);
@@ -68,16 +116,42 @@ export function MediaLibrary({ onSelect, onMultiSelect, multiSelect = false, ini
       const file = files[i];
       setUploadProgress({ current: i + 1, total: files.length });
       
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('category', uploadCategory);
-      if (uploadProjectName) formData.append('projectName', uploadProjectName);
-
       try {
-        const res = await fetch('/api/upload', {
+        // Compress Image
+        const compressedBlob = await compressImage(file);
+        
+        // Upload to Supabase Storage
+        const fileName = `${Date.now()}-${file.name.replace(/\.[^/.]+$/, "")}.jpg`;
+        const { error: uploadError } = await supabase.storage
+            .from('media') // Make sure this bucket exists in Supabase
+            .upload(fileName, compressedBlob, {
+                contentType: 'image/jpeg',
+                upsert: false
+            });
+
+        if (uploadError) {
+            console.error('Supabase Upload Error:', uploadError);
+            throw uploadError;
+        }
+
+        // Get Public URL
+        const { data: { publicUrl } } = supabase.storage
+            .from('media')
+            .getPublicUrl(fileName);
+
+        // Save Metadata to DB
+        const res = await fetch('/api/media', {
           method: 'POST',
-          body: formData
+          body: JSON.stringify({
+            name: file.name,
+            url: publicUrl,
+            type: 'image/jpeg',
+            category: uploadCategory,
+            projectName: uploadProjectName
+          }),
+          headers: { 'Content-Type': 'application/json' }
         });
+
         if (res.ok) {
           successCount++;
         } else {
@@ -285,7 +359,6 @@ export function MediaLibrary({ onSelect, onMultiSelect, multiSelect = false, ini
             </div>
         )}
 
-
         {/* Error Modal */}
         {errorModal.isOpen && (
              <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -338,4 +411,3 @@ export function MediaLibrary({ onSelect, onMultiSelect, multiSelect = false, ini
     </div>
   );
 }
-
