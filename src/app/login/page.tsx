@@ -19,6 +19,7 @@ export default function LoginPage() {
 
     try {
       await axios.post("/api/auth/login", { email, password });
+      router.refresh(); // Force server revalidation to see the new cookie
       router.push("/admin");
     } catch (err: any) {
       setError("Invalid credentials. Please try again.");

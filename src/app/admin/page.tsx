@@ -211,6 +211,9 @@ function AdminContent() {
             >
                 About Info
             </button>
+            <Link href="/" className="pb-1 border-b-2 border-transparent text-gray-400 hover:text-black transition-colors" target="_blank">
+                View Website ↗
+            </Link>
             <button onClick={handleLogout} className="text-gray-400 hover:text-black border-b-2 border-transparent uppercase">
                 Logout
             </button>
