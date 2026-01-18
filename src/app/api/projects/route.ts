@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 export async function GET() {
   try {
     const projects = await prisma.project.findMany({
-      orderBy: { id: 'desc' } // Newest first
+      orderBy: { id: 'asc' } // Oldest first (First created is first displayed)
     });
     
     // Map 'thumbnail' from DB to 'image' for frontend
