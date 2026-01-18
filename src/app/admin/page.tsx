@@ -51,6 +51,9 @@ function AdminContent() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   
+  // Error Modal
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: "" });
+  
   // Media Library Modal
   const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
   const [mediaTarget, setMediaTarget] = useState<"thumbnail" | "gallery">("thumbnail");
@@ -91,7 +94,7 @@ function AdminContent() {
         queryClient.invalidateQueries({ queryKey: ['projects'] });
         closeModal();
     },
-    onError: () => alert('Failed to save project')
+    onError: () => setErrorModal({ isOpen: true, message: 'Failed to save project. Please try again.' })
   });
 
   const deleteProjectMutation = useMutation({
@@ -102,7 +105,7 @@ function AdminContent() {
         queryClient.invalidateQueries({ queryKey: ['projects'] });
         closeModal();
     },
-    onError: () => alert('Failed to delete project')
+    onError: () => setErrorModal({ isOpen: true, message: 'Failed to delete project. Please try again.' })
   });
 
   const saveProfileMutation = useMutation({
@@ -113,7 +116,7 @@ function AdminContent() {
         queryClient.invalidateQueries({ queryKey: ['profile'] });
         setIsSuccessModalOpen(true);
     },
-    onError: () => alert('Failed to save profile')
+    onError: () => setErrorModal({ isOpen: true, message: 'Failed to save profile. Please try again.' })
   });
 
   // --- HANDLERS ---
@@ -139,6 +142,7 @@ function AdminContent() {
     setIsDeleteModalOpen(false);
     setIsMediaLibraryOpen(false);
     setIsSuccessModalOpen(false);
+    setErrorModal({ isOpen: false, message: "" });
     setEditingProject(null);
     setProjectToDelete(null);
   };
@@ -359,11 +363,32 @@ function AdminContent() {
       </main>
 
       {/* MODALS OVERLAY */}
-      {(isProjectModalOpen || isDeleteModalOpen || isMediaLibraryOpen || isSuccessModalOpen) && (
+      {(isProjectModalOpen || isDeleteModalOpen || isMediaLibraryOpen || isSuccessModalOpen || errorModal.isOpen) && (
         <div 
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={closeModal}
         >
+            {/* ERROR MODAL */}
+            {errorModal.isOpen && (
+                 <div className="bg-white p-8 w-full max-w-sm shadow-2xl border border-gray-100 flex flex-col gap-6 text-center animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+                            <span className="text-red-600 text-xl font-bold">!</span>
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold uppercase tracking-widest text-black mb-1">Error</h3>
+                            <p className="text-sm text-gray-500 font-light">{errorModal.message}</p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={() => setErrorModal({ isOpen: false, message: "" })}
+                        className="bg-black text-white text-xs font-bold uppercase tracking-widest w-full py-3 hover:bg-gray-800 transition-colors"
+                    >
+                        Close
+                    </button>
+                 </div>
+            )}
+
             {/* SUCCESS MODAL */}
             {isSuccessModalOpen && (
                  <div className="bg-white p-8 w-full max-w-sm shadow-2xl border border-gray-100 flex flex-col gap-6 text-center animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>

@@ -25,6 +25,8 @@ export function MediaLibrary({ onSelect, onMultiSelect, multiSelect = false, ini
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [loading, setLoading] = useState(true);
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: "" });
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
 
   // Filters
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory === "all" ? "thumbnail" : initialCategory);
@@ -96,25 +98,29 @@ export function MediaLibrary({ onSelect, onMultiSelect, multiSelect = false, ini
     }
     
     if (failCount > 0) {
-      alert(`${successCount} uploaded, ${failCount} failed`);
+      setErrorModal({ isOpen: true, message: `${successCount} uploaded, ${failCount} failed` });
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Delete this image? This action cannot be undone.')) return;
-    
+  const handleDelete = (id: number) => {
+    setConfirmDelete(id);
+  };
+
+  const executeDelete = async () => {
+    if (!confirmDelete) return;
     try {
-      const res = await fetch(`/api/media?id=${id}`, {
+      const res = await fetch(`/api/media?id=${confirmDelete}`, {
         method: 'DELETE'
       });
       if (res.ok) {
         fetchMedia();
+        setConfirmDelete(null);
       } else {
-        alert('Delete failed');
+        setErrorModal({ isOpen: true, message: 'Delete failed' });
       }
     } catch (e) {
       console.error(e);
-      alert('Delete error');
+      setErrorModal({ isOpen: true, message: 'Delete error' });
     }
   };
 
@@ -129,7 +135,7 @@ export function MediaLibrary({ onSelect, onMultiSelect, multiSelect = false, ini
   const projects = Array.from(new Set(media.map(m => m.projectName).filter(Boolean))) as string[];
 
   return (
-    <div className="flex flex-col h-full bg-white font-sans text-black">
+    <div className="flex flex-col h-full bg-white font-sans text-black relative">
         {/* Toolbar */}
         <div className="p-4 border-b border-gray-100 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center bg-gray-50/50">
             <div className="flex gap-4 items-center">
@@ -182,7 +188,7 @@ export function MediaLibrary({ onSelect, onMultiSelect, multiSelect = false, ini
                     </div>
                 </div>
                 <label className={`cursor-pointer bg-black text-white text-[10px] uppercase font-bold tracking-widest px-4 py-2 hover:bg-gray-800 transition-colors h-[26px] flex items-center ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
-                    {uploading ? `Uploading ${uploadProgress.current}/${uploadProgress.total}...` : '+ Upload'}
+                    {uploading ? `Uploading ${uploadProgress.current}/${uploadProgress.total}...` : '+'}
                     <input type="file" className="hidden" accept="image/*" multiple onChange={handleUpload} disabled={uploading} />
                 </label>
             </div>
@@ -278,6 +284,57 @@ export function MediaLibrary({ onSelect, onMultiSelect, multiSelect = false, ini
                 </button>
             </div>
         )}
+
+
+        {/* Error Modal */}
+        {errorModal.isOpen && (
+             <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                 <div className="bg-white p-8 w-full max-w-sm shadow-2xl border border-gray-100 flex flex-col gap-6 text-center animate-in zoom-in-95 duration-200">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+                            <span className="text-red-600 text-xl font-bold">!</span>
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold uppercase tracking-widest text-black mb-1">Error</h3>
+                            <p className="text-sm text-gray-500 font-light">{errorModal.message}</p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={() => setErrorModal({ isOpen: false, message: "" })}
+                        className="bg-black text-white text-xs font-bold uppercase tracking-widest w-full py-3 hover:bg-gray-800 transition-colors"
+                    >
+                        Close
+                    </button>
+                 </div>
+             </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {confirmDelete !== null && (
+            <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                 <div className="bg-white p-8 w-full max-w-sm shadow-2xl border border-gray-100 flex flex-col gap-6 text-center animate-in zoom-in-95 duration-200">
+                    <div>
+                        <h3 className="text-lg font-bold uppercase tracking-widest text-black mb-1">Delete Image?</h3>
+                        <p className="text-sm text-gray-500 font-light">This action cannot be undone.</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                         <button 
+                            onClick={() => setConfirmDelete(null)}
+                            className="py-3 text-xs font-bold uppercase tracking-widest text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            onClick={executeDelete}
+                            className="py-3 text-xs font-bold uppercase tracking-widest text-white bg-red-600 hover:bg-red-700 transition-colors shadow-lg shadow-red-200"
+                        >
+                            Confirm
+                        </button>
+                    </div>
+                 </div>
+            </div>
+        )}
+
     </div>
   );
 }

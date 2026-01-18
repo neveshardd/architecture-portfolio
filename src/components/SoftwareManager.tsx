@@ -23,6 +23,7 @@ export function SoftwareManager() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: "" });
   
   // Data States
   const [editingSoftware, setEditingSoftware] = useState<Software | null>(null);
@@ -58,7 +59,7 @@ export function SoftwareManager() {
       queryClient.invalidateQueries({ queryKey: ['software'] });
       closeModal();
     },
-    onError: () => alert('Failed to save software')
+    onError: () => setErrorModal({ isOpen: true, message: 'Failed to save software' })
   });
 
   const deleteSoftwareMutation = useMutation({
@@ -69,7 +70,7 @@ export function SoftwareManager() {
       queryClient.invalidateQueries({ queryKey: ['software'] });
       closeModal();
     },
-    onError: () => alert('Failed to delete software')
+    onError: () => setErrorModal({ isOpen: true, message: 'Failed to delete software' })
   });
 
   // Handlers
@@ -95,6 +96,7 @@ export function SoftwareManager() {
     setIsModalOpen(false);
     setIsDeleteModalOpen(false);
     setIsMediaLibraryOpen(false);
+    setErrorModal({ isOpen: false, message: "" });
     setEditingSoftware(null);
     setSoftwareToDelete(null);
   };
@@ -159,11 +161,32 @@ export function SoftwareManager() {
       </div>
 
       {/* PORTAL MODALS */}
-      {mounted && (isModalOpen || isDeleteModalOpen || isMediaLibraryOpen) && createPortal(
+      {mounted && (isModalOpen || isDeleteModalOpen || isMediaLibraryOpen || errorModal.isOpen) && createPortal(
          <div 
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-100 flex items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={closeModal}
         >
+          {/* Error Modal */}
+          {errorModal.isOpen && (
+             <div className="bg-white p-8 w-full max-w-sm shadow-2xl border border-gray-100 flex flex-col gap-6 text-center animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+                        <span className="text-red-600 text-xl font-bold">!</span>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold uppercase tracking-widest text-black mb-1">Error</h3>
+                        <p className="text-sm text-gray-500 font-light">{errorModal.message}</p>
+                    </div>
+                </div>
+                <button 
+                    onClick={() => setErrorModal({ isOpen: false, message: "" })}
+                    className="bg-black text-white text-xs font-bold uppercase tracking-widest w-full py-3 hover:bg-gray-800 transition-colors"
+                >
+                    Close
+                </button>
+             </div>
+          )}
+
           {/* Delete Modal */}
           {isDeleteModalOpen && softwareToDelete && (
             <div className="bg-white p-8 w-full max-w-md shadow-2xl border border-gray-100 flex flex-col gap-6" onClick={e => e.stopPropagation()}>
