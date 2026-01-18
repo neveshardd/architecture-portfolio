@@ -31,27 +31,14 @@ export async function POST(request: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Ensure directory exists
-    const uploadDir = join(process.cwd(), 'public/uploads');
-    try {
-        await mkdir(uploadDir, { recursive: true });
-    } catch (e) {
-        // ignore if exists
-    }
+    // Convert to Base64 Data URL for DB storage (Vercel compatible)
+    const base64Data = buffer.toString('base64');
+    const publicUrl = `data:${file.type};base64,${base64Data}`;
 
-    // Unique filename
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const filename = uniqueSuffix + '-' + file.name.replace(/[^a-zA-Z0-9.-]/g, '');
-    const filepath = join(uploadDir, filename);
-
-    const publicUrl = `/uploads/${filename}`;
     const category = data.get('category') as string || 'general';
     const projectName = data.get('projectName') as string || null;
 
-    // Write file to disk
-    await writeFile(filepath, buffer);
-
-    // Save to DB
+    // Save to DB (FileSystem write removed for Vercel compatibility)
     const media = await prisma.media.create({
         data: {
             name: file.name,

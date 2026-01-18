@@ -42,13 +42,14 @@ export async function DELETE(request: Request) {
       where: { id: parseInt(id) }
     });
 
-    // Delete file from filesystem
-    try {
-      const filepath = join(process.cwd(), 'public', media.url);
-      await unlink(filepath);
-    } catch (fileError) {
-      console.warn('File deletion failed (may not exist):', fileError);
-      // Continue even if file deletion fails
+    // Delete file from filesystem (only if it's a local file path, not base64)
+    if (!media.url.startsWith('data:')) {
+      try {
+        const filepath = join(process.cwd(), 'public', media.url);
+        await unlink(filepath);
+      } catch (fileError) {
+        console.warn('File deletion failed (may not exist):', fileError);
+      }
     }
 
     return NextResponse.json({ success: true, message: 'Media deleted' });
