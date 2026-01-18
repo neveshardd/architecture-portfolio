@@ -3,13 +3,29 @@ import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import prisma from "@/lib/prisma"; // We need to ensure lib/prisma exists or create it
 
+import { isAuthenticated } from '@/lib/auth';
+
 export async function POST(request: Request) {
+  if (!await isAuthenticated()) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     const data = await request.formData();
     const file: File | null = data.get('file') as unknown as File;
 
     if (!file) {
       return NextResponse.json({ success: false, message: 'No file uploaded' }, { status: 400 });
+    }
+
+    // Validate File Size (Max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        return NextResponse.json({ success: false, message: 'File too large (Max 5MB)' }, { status: 400 });
+    }
+
+    // Validate Mime Type
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+        return NextResponse.json({ success: false, message: 'Invalid file type. Only images allowed.' }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();

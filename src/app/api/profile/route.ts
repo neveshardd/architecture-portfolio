@@ -25,7 +25,12 @@ export async function GET() {
   }
 }
 
+import { isAuthenticated } from '@/lib/auth';
+
 export async function POST(req: Request) {
+  if (!await isAuthenticated()) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     const data = await req.json();
     const profile = await prisma.profile.upsert({

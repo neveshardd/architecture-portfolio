@@ -14,7 +14,12 @@ export async function GET() {
   }
 }
 
+import { isAuthenticated } from '@/lib/auth';
+
 export async function DELETE(request: Request) {
+  if (!await isAuthenticated()) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

@@ -49,7 +49,7 @@ function AdminContent() {
   // Modal States
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false); // Success Modal State
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   
   // Media Library Modal
   const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
@@ -75,7 +75,7 @@ function AdminContent() {
     queryKey: ['profile'],
     queryFn: async () => {
       const { data } = await axios.get('/api/profile');
-      setProfileData(data); // Sync form data when fetched
+      setProfileData(data);
       return data;
     }
   });
@@ -111,7 +111,7 @@ function AdminContent() {
     },
     onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['profile'] });
-        setIsSuccessModalOpen(true); // Open success modal
+        setIsSuccessModalOpen(true);
     },
     onError: () => alert('Failed to save profile')
   });
@@ -178,6 +178,16 @@ function AdminContent() {
     setIsMediaLibraryOpen(false);
   };
 
+  // --- LOGOUT HANDLER (ADDED) ---
+  const handleLogout = async () => {
+    try {
+        await axios.post('/api/auth/logout');
+        router.push('/login');
+    } catch (e) {
+        console.error("Logout failed");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-black relative">
       {/* Admin Header */}
@@ -201,9 +211,9 @@ function AdminContent() {
             >
                 About Info
             </button>
-            <Link href="/" className="text-gray-400 hover:text-black border-b-2 border-transparent">
-                Exit
-            </Link>
+            <button onClick={handleLogout} className="text-gray-400 hover:text-black border-b-2 border-transparent uppercase">
+                Logout
+            </button>
         </div>
       </header>
 
